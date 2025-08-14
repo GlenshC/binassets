@@ -1,0 +1,25 @@
+{
+  "configurations": [
+    {
+      "name": "Win64",
+      "includePath": [
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/vendor",
+        "${workspaceFolder}/**"
+      ],
+      "defines": ["_CRT_SECURE_NO_WARNINGS"],
+      "compilerPath": "clang",
+      "cStandard": "c99",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "windows-clang-x64",
+      "browse": {
+        "path": [
+          "${workspaceFolder}/src",
+          "${workspaceFolder}/vendor",
+        ],
+        "limitSymbolsToIncludedHeaders": true
+      }
+    }
+  ],
+  "version": 4
+}

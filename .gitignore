@@ -1,0 +1,9 @@
+build/
+assets/
+
+*.json
+*.exe
+*.glnsh
+
+Thumbs.db
+.DS_Store

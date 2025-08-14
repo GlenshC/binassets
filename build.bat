@@ -1,0 +1,1 @@
+make clean && make && app files.json bin
