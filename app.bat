@@ -1,12 +1,12 @@
 @echo off
-if exist build\testapp.exe (
-    call build\testapp.exe %*
+if exist build\binassets_exe.exe (
+    call build\binassets_exe.exe %*
 ) else (
-    if exist build\Debug\testapp.exe (
-        call build\Debug\testapp.exe %*
+    if exist build\Debug\binassets_exe.exe (
+        call build\Debug\binassets_exe.exe %*
     ) else (
-        if exist build\Release\testapp.exe (
-            call build\Release\testapp.exe %*
+        if exist build\Release\binassets_exe.exe (
+            call build\Release\binassets_exe.exe %*
         ) else (
             @echo No build executable found.
         )
