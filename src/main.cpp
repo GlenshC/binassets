@@ -3,7 +3,7 @@
 #include "util_debug.h"
 
 #ifdef ASSET_CONVERT_MAIN
-    #include "binasset_write.h"
+    #include "binassets/binasset_write.h"
     int main(int argc, char *argv[])
     {
         DEBUG_LOG("Binary Asset Compiler.\n\n");
@@ -18,8 +18,7 @@
     }
 
 #else
-
-    #include "binasset_read.h"
+    #include "binassets/binasset_read.h"
     #include "../bin.h"
     int main(int argc, char *argv[])
     {

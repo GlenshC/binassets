@@ -26,6 +26,7 @@ add_library(binasset_read STATIC
 target_include_directories(binasset_read
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 # ===============================
@@ -49,6 +50,7 @@ target_include_directories(binasset_write
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/vendor
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 target_link_libraries(binasset_write
     PRIVATE

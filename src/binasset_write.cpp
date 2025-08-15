@@ -11,7 +11,7 @@
 #include "stb_image/stb_image.h"
 #include "nlohmann/json.hpp"
 #include "nlohmann/tinyxml2.h"
-#include "./binasset_write.h"
+#include "binassets/binasset_write.h"
 
 static char*        string_readf(const char* path, int &size);
 static std::string  get_dir_fpath(const std::string &filepath);

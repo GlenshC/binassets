@@ -5,6 +5,7 @@
       "includePath": [
         "${workspaceFolder}/src",
         "${workspaceFolder}/vendor",
+        "${workspaceFolder}/include",
         "${workspaceFolder}/**"
       ],
       "defines": ["_CRT_SECURE_NO_WARNINGS"],
@@ -16,6 +17,7 @@
         "path": [
           "${workspaceFolder}/src",
           "${workspaceFolder}/vendor",
+          "${workspaceFolder}/include"
         ],
         "limitSymbolsToIncludedHeaders": true
       }

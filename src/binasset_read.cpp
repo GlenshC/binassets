@@ -1,7 +1,7 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
     #define _CRT_SECURE_NO_WARNINGS
 #endif
-#include "./binasset_read.h"
+#include "binassets/binasset_read.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
