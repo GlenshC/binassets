@@ -17,12 +17,12 @@ static char*        string_readf(const char* path, int &size);
 static std::string  get_dir_fpath(const std::string &filepath);
 
 /* STRUCT FUNCTIONS */
-namespace ggb
+namespace binassets
 {
+    void assets_write_json(std::vector<AssetDataIMG> &imgs, std::vector<AssetDataShader> &shaders, std::vector<AssetDataAtlas> &atlases,std::string path_json_out);
     static void assets_write_bin(std::vector<AssetDataIMG> &imgs,  std::vector<AssetDataShader> &shaders, std::vector<AssetDataAtlas> &atlases, const char *bin_path_out);
     static void assets_load_json(std::vector<AssetDataIMG> &imgs, std::vector<AssetDataShader> &shaders, std::vector<AssetDataAtlas> &atlases, const char *json_file);
     static void assets_load_xml(AssetDataAtlas &atlas, const char *xml_file);
-    static void assets_free(std::vector<AssetDataIMG> &imgs, std::vector<AssetDataAtlas> atlases, std::vector<AssetDataShader> &shaders);
 
 /******************************************************** 
  *                                                      *
@@ -166,7 +166,7 @@ static void replace_char_and_upper(char *str, char find, char replace) {
         
         for (auto elem = root->FirstChildElement("SubTexture"); elem; elem = elem->NextSiblingElement("SubTexture"))
         {
-            int x, y, w, h;
+            float x, y, w, h;
 
             std::string name = elem->Attribute("name");
             replace_char_and_upper(name.data(), '.', '_');
@@ -181,43 +181,18 @@ static void replace_char_and_upper(char *str, char find, char replace) {
         }
     }
 
-    static void assets_free(std::vector<AssetDataIMG> &imgs, std::vector<AssetDataAtlas> atlases, std::vector<AssetDataShader> &shaders)
-    {
-        for (auto &img : imgs)
-        {
-            std::free(img.data);
-            img.data = NULL;
-        }
-        for (auto &atlas : atlases)
-        {
-            std::free(atlas.data);
-            atlas.data = NULL;
-        }
-        for (auto &shader : shaders)
-        {
-            std::free(shader.data);
-            shader.data = NULL;
-        }
-        DEBUG_LOG("Assets resources free.\n");
-    }
-
     
     void assets_create_bin(const char *json_file, const char *bin_path_out)
     {
         if (!json_file || !bin_path_out) return;
-        std::vector<ggb::AssetDataIMG>    imgs;
-        std::vector<ggb::AssetDataShader> shaders;
-        std::vector<ggb::AssetDataAtlas>  atlases;
+        std::vector<binassets::AssetDataIMG>    imgs;
+        std::vector<binassets::AssetDataShader> shaders;
+        std::vector<binassets::AssetDataAtlas>  atlases;
         
         DEBUG_LOG("Creating asset binaries...\n");
         assets_load_json(imgs, shaders, atlases, json_file);
         assets_write_bin(imgs, shaders, atlases, bin_path_out);
-        assets_free(imgs, atlases, shaders);
     }
-
-
-
-
 
     
 
@@ -234,187 +209,355 @@ static void replace_char_and_upper(char *str, char find, char replace) {
         std::string bin_path = bin_path_out; 
         std::string path_out = bin_path + ".glnsh";
         std::string path_h_out = bin_path + ".h";
+        std::string path_json_out = bin_path + ".json";
 
-        DEBUG_LOG("Writing asset binaries %s...\n", path_out.c_str());
-        std::FILE *file = std::fopen(path_out.c_str(), "wb");
-
-        if (!file) 
-        {
-            DEBUG_LOG("Failed to compile %s", path_out.c_str());
-            return;
-        }
-
-        /* header */
-        std::fwrite(header, sizeof(char), 5, file);
-        
-        /* IMG, ATLAS, SHADER, SUBTEX COUNTS */
         AssetCounts dcounts = {};
         dcounts.imgs = imgs.size();
         dcounts.atlases = atlases.size();
         dcounts.shaders = shaders.size();
         dcounts.subtex = 0;
-        
-        std::vector<int> buffer;
-        std::vector<SubTextureDims> sub_tex;
-
-        size_t total_hash_chars = 0;
-        size_t img_hash_chars = 0;
-        size_t atlas_hash_chars = 0;
-        size_t shader_hash_chars = 0;
-        size_t total_subtex_chars = 0;
-        
-        /* PER IMG, ATLAS, SHADER INFOS */
-
-        for (auto &img : imgs) 
         {
-            buffer.push_back(img.channels);
-            buffer.push_back(img.x);
-            buffer.push_back(img.y);
+            DEBUG_LOG("Writing asset binaries %s...\n", path_out.c_str());
+            std::FILE *file = std::fopen(path_out.c_str(), "wb");
 
-            img_hash_chars += img.hash_key.size() + 1;
-        }
-        
-        for (auto &atlas : atlases)
-        {
-            int sub_n = (int)atlas.sprite_names.size();
-            dcounts.subtex += sub_n;
-            
-            buffer.push_back(atlas.channels);
-            buffer.push_back(atlas.x);
-            buffer.push_back(atlas.y);
-            buffer.push_back(sub_n);
-
-            atlas_hash_chars += atlas.hash_key.size() + 1;
-            
-            for (int i =0; i < (int)atlas.sprite_dims.size(); i++)
+            if (!file)
             {
-                sub_tex.push_back(atlas.sprite_dims[i]);
-                total_subtex_chars += atlas.sprite_names[i].size() + 1;
+                DEBUG_LOG("Failed to compile %s", path_out.c_str());
+                return;
             }
+
+            /* header */
+            std::fwrite(header, sizeof(char), 5, file);
+
+            /* IMG, ATLAS, SHADER, SUBTEX COUNTS */
+
+            /* PER IMG, ATLAS, SHADER INFOS */
+
+            std::vector<SubTextureDims> sub_tex;
+            std::vector<int> buffer;
+            for (auto &img : imgs)
+            {
+                buffer.push_back(img.channels);
+                buffer.push_back(img.x);
+                buffer.push_back(img.y);
+            }
+
+            for (auto &atlas : atlases)
+            {
+                int sub_n = (int)atlas.sprite_names.size();
+                dcounts.subtex += sub_n;
+
+                buffer.push_back(atlas.channels);
+                buffer.push_back(atlas.x);
+                buffer.push_back(atlas.y);
+                buffer.push_back(sub_n);
+                DEBUG_LOG("Atlas: %d %d %d %d\n", atlas.channels, atlas.x, atlas.y, sub_n);
+
+                for (int i = 0; i < (int)atlas.sprite_dims.size(); i++)
+                {
+                    auto &sprite_dim = atlas.sprite_dims[i];
+                    sub_tex.push_back({sprite_dim.x,
+                                       sprite_dim.y,
+                                       sprite_dim.width,
+                                       sprite_dim.height});
+                }
+            }
+
+            for (auto &shader : shaders)
+            {
+
+                buffer.push_back(shader.count);
+                DEBUG_LOG("shader[i].count = %d;\n", shader.count);
+            }
+
+            /* DATA COUNTS */
+            std::fwrite(&dcounts, sizeof(int), 4, file);
+
+            /* INFOS */
+            std::fwrite(buffer.data(), sizeof(int), buffer.size(), file);
+
+            std::fwrite(sub_tex.data(), sizeof(SubTextureDims), sub_tex.size(), file);
+
+            /* SUBTEX */
+            
+            // REMOVE
+    
+            /* PER IMG, ATLAS, SHADER DATA */
+            for (auto &img : imgs) 
+            {
+                std::fwrite(img.data, sizeof(unsigned char), img.channels * img.x * img.y, file);
+                free(img.data);
+            }
+    
+            for (auto &atlas : atlases) 
+            {
+                std::fwrite(atlas.data, sizeof(unsigned char), atlas.channels * atlas.x * atlas.y, file);
+                free(atlas.data);
+            }
+           
+            for (auto &shader : shaders) 
+            {
+                std::fwrite(shader.data, sizeof(char), shader.count, file);
+                free(shader.data);
+            }
+    
+            DEBUG_LOG("Successfully compiled asset binaries %s\n", path_out.c_str());
+    
+            std::fclose(file);
         }
-        
-        for (auto &shader : shaders) 
-        {
-            shader_hash_chars += shader.hash_key.size() + 1;
-
-            buffer.push_back(shader.count);
-        }
-        total_hash_chars = img_hash_chars + atlas_hash_chars + shader_hash_chars;
-
-        /* DATA COUNTS */
-        std::fwrite(&dcounts, sizeof(int), 4, file);
-
-        /* INFOS */
-        std::fwrite(buffer.data(), sizeof(int), buffer.size(), file);
-        buffer = {};
-
-        /* SUBTEX */
-        std::fwrite(sub_tex.data(), sizeof(SubTextureDims), sub_tex.size(), file);
-        
-        // REMOVE
-
-        /* PER IMG, ATLAS, SHADER DATA */
-        for (auto &img : imgs) 
-        {
-            std::fwrite(img.data, sizeof(unsigned char), img.channels * img.x * img.y, file);
-        }
-
-        for (auto &atlas : atlases) 
-        {
-            std::fwrite(atlas.data, sizeof(unsigned char), atlas.channels * atlas.x * atlas.y, file);
-        }
-       
-        for (auto &shader : shaders) 
-        {
-            std::fwrite(shader.data, sizeof(char), shader.count, file);
-        }
-
-        DEBUG_LOG("Successfully compiled asset binaries %s\n", path_out.c_str());
-
-        std::fclose(file);
 
         /* WRITE .h FILE */
-        DEBUG_LOG("Creating enums .h file %s\n", path_h_out.c_str())
-        file = std::fopen(path_h_out.c_str(), "wb");
-
-        if (!file)
         {
-            DEBUG_LOG("Failed to create file %s\n", path_h_out.c_str());
-            return;
-        }
+            DEBUG_LOG("Creating enums .h file %s\n", path_h_out.c_str())
+            FILE *file = std::fopen(path_h_out.c_str(), "wb");
 
-        char *img_hash_keys = nullptr;
-        char *atlas_hash_keys = nullptr;
-        char *shader_hash_keys = nullptr;
-        (void) img_hash_keys;
-        (void) atlas_hash_keys;
-        (void) shader_hash_keys;
-
-        std::string img_header = "#pragma once\n\nnamespace IMG {\nenum {";
-        std::string atlas_header = "namespace ATLAS {\nenum {";
-        std::string shader_header = "namespace SHADER {\nenum {";
-        std::string footer = "};\n}\n";
-
-        std::vector<size_t> atlas_subtex_keys(dcounts.atlases);
-        std::vector<char> hash_keys(total_hash_chars + img_header.size() + atlas_header.size() + shader_header.size() + 64);
-        std::vector<char> subtex_keys(total_subtex_chars + atlas_hash_chars + shader_header.size() * dcounts.atlases + footer.size() * dcounts.atlases + 64);
-
-        size_t hash_offset = 0;
-        size_t subtex_offset = 0;
-        
-        auto copy_str = [&](std::vector<char>& buffer, size_t& offset, const std::string& s) {
-            std::memcpy(buffer.data() + offset, s.data(), s.size());
-            offset += s.size();
-            buffer.data()[offset++] = '\n';
-        };
-        auto copy_str_comma = [&](std::vector<char>& buffer, size_t& offset, const std::string& s) {
-            std::memcpy(buffer.data() + offset, s.data(), s.size());
-            offset += s.size();
-            buffer.data()[offset++] = ',';
-            buffer.data()[offset++] = '\n';
-        };
-        // TODO finish header output
-
-        /* IMG ENUM CLASS */
-        img_hash_keys = hash_keys.data();
-        copy_str(hash_keys, hash_offset, img_header); //header
-        for (auto &img : imgs) 
-        {
-            copy_str_comma(hash_keys, hash_offset, img.hash_key);
-        }
-        copy_str(hash_keys, hash_offset, footer);
-        
-        /* SHADER ENUM CLASS */
-        shader_hash_keys = hash_keys.data() + hash_offset; // header
-        copy_str(hash_keys, hash_offset, shader_header);
-        for (auto &shader : shaders) 
-        {
-            copy_str_comma(hash_keys, hash_offset, shader.hash_key);
-        }
-        copy_str(hash_keys, hash_offset, footer);
-        
-        /* ATLAS ENUM CLASS */
-        atlas_hash_keys = hash_keys.data() + hash_offset;
-        copy_str(hash_keys, hash_offset, atlas_header); //header
-        for (auto &atlas : atlases)
-        {
-            copy_str_comma(hash_keys, hash_offset, atlas.hash_key);
-            
-            /* SUBTEX ENUM CLASS */
-            atlas_subtex_keys.push_back(subtex_offset);
-            std::string subtex_header = "namespace " + atlas.hash_key + " {\nenum {";
-            copy_str(subtex_keys, subtex_offset, subtex_header); // header
-            for (auto &s : atlas.sprite_names)
+            if (!file)
             {
-                copy_str_comma(subtex_keys, subtex_offset, s);
+                DEBUG_LOG("Failed to create file %s\n", path_h_out.c_str());
+                return;
             }
-            copy_str(subtex_keys, subtex_offset, footer); // header
+
+            std::string h_header = "#pragma once\n";
+            std::string img_header = "namespace BSST_IMG {\n    enum {";
+            std::string atlas_header = "namespace BSST_ATLAS {\n    enum {";
+            std::string shader_header = "namespace BSST_SHADER {\n    enum {";
+            std::string bracket = "};\n";
+            std::string names_var = "char *NAMES[] = {";
+
+            const size_t buffer_cap = 4092;
+            size_t buffer_size = 0;
+            char *out_buffer = (char *)std::malloc(buffer_cap + 1);
+            out_buffer[buffer_size] = 0;
+            std::string indent1 = "    ";
+            std::string indent2 = "        ";
+
+            auto writeout_raw = [&](const std::string &s)
+            {
+                if (buffer_size + s.size() >= buffer_cap)
+                {
+                    std::fwrite(out_buffer, 1, buffer_size, file);
+                    buffer_size = 0;
+                }
+                std::memcpy(out_buffer + buffer_size, s.data(), s.size());
+                buffer_size += s.size();
+            };
+
+            auto writeout = [&](const std::string &s)
+            {
+                if (buffer_size + s.size() + 1 >= buffer_cap)
+                {
+                    std::fwrite(out_buffer, 1, buffer_size, file);
+                    buffer_size = 0;
+                }
+                std::memcpy(out_buffer + buffer_size, s.data(), s.size());
+                buffer_size += s.size();
+                out_buffer[buffer_size++] = '\n';
+            };
+            auto writeoutln = [&](const std::string &s)
+            {
+                if (buffer_size + s.size() + 2 >= buffer_cap)
+                {
+                    std::fwrite(out_buffer, 1, buffer_size, file);
+                    buffer_size = 0;
+                }
+                std::memcpy(out_buffer + buffer_size, s.data(), s.size());
+                buffer_size += s.size();
+                out_buffer[buffer_size++] = ',';
+                out_buffer[buffer_size++] = '\n';
+            };
+
+            auto writeout_str = [&](const std::string &s)
+            {
+                if (buffer_size + s.size() + 4 >= buffer_cap)
+                {
+                    std::fwrite(out_buffer, 1, buffer_size, file);
+                    buffer_size = 0;
+                }
+                out_buffer[buffer_size++] = '"';
+                std::memcpy(out_buffer + buffer_size, s.data(), s.size());
+                buffer_size += s.size();
+                out_buffer[buffer_size++] = '"';
+                out_buffer[buffer_size++] = ',';
+                out_buffer[buffer_size++] = '\n';
+            };
+            // TODO finish header output
+
+            /* IMG ENUM CLASS */
+            writeout(h_header);
+            if (dcounts.imgs)
+            {
+                writeout(img_header); // header
+                for (auto &img : imgs)
+                {
+                    writeout_raw(indent2);
+                    writeoutln(img.hash_key);
+                }
+                writeout_raw(indent1);
+                writeout(bracket);
+                writeout_raw(indent1);
+                writeout(names_var);
+                for (auto &img : imgs)
+                {
+                    writeout_raw(indent2);
+                    writeout_str(img.hash_key);
+                }
+                writeout_raw(indent1);
+                writeout(bracket);
+                writeout(bracket);
+            }
+
+            /* SHADER ENUM CLASS */
+            if (dcounts.shaders)
+            {
+                writeout(shader_header);
+                for (auto &shader : shaders)
+                {
+                    writeout_raw(indent2);
+                    writeoutln(shader.hash_key);
+                }
+                writeout_raw(indent1);
+                writeout(bracket);
+                writeout_raw(indent1);
+                writeout(names_var);
+                for (auto &shader : shaders)
+                {
+                    writeout_raw(indent2);
+                    writeout_str(shader.hash_key);
+                }
+                writeout_raw(indent1);
+                writeout(bracket);
+                writeout(bracket);
+            }
+
+            /* ATLAS ENUM CLASS */
+            if (dcounts.atlases)
+            {
+                writeout(atlas_header); // header
+                for (auto &atlas : atlases)
+                {
+                    writeout_raw(indent2);
+                    writeoutln(atlas.hash_key);
+                }
+                writeout_raw(indent1);
+                writeout(bracket);
+                writeout_raw(indent1);
+                writeout(names_var);
+                for (auto &atlas : atlases)
+                {
+                    writeout_raw(indent2);
+                    writeout_str(atlas.hash_key);
+                }
+                writeout_raw(indent1);
+                writeout(bracket);
+                writeout(bracket);
+            }
+
+            /* WRITE SUB TEX */
+            if (dcounts.atlases)
+            {
+                for (auto &atlas : atlases)
+                {
+                    /* SUBTEX ENUM CLASS */
+                    std::string subtex_header = "namespace BSST_" + atlas.hash_key + " {\n    enum {";
+                    writeout(subtex_header); // header
+                    for (auto &s : atlas.sprite_names)
+                    {
+                        writeout_raw(indent2);
+                        writeoutln(s);
+                    }
+                    writeout_raw(indent1);
+                    writeout(bracket);
+                    writeout_raw(indent1);
+                    writeout(names_var);
+                    for (auto &s : atlas.sprite_names)
+                    {
+                        writeout_raw(indent2);
+                        writeout_str(s);
+                    }
+
+                    writeout_raw(indent1);
+                    writeout(bracket);
+                    writeout(bracket);
+                }
+            }
+
+            std::fwrite(out_buffer, sizeof(char), buffer_size, file); // leftovers
+        
+            std::fclose(file);
         }
-        copy_str(hash_keys, hash_offset, footer);
+        assets_write_json(imgs, shaders, atlases, path_json_out);
+    }
+    
+    void assets_write_json(std::vector<AssetDataIMG> &imgs, std::vector<AssetDataShader> &shaders, std::vector<AssetDataAtlas> &atlases,std::string path_json_out)
+    {
+        (void) imgs, (void) shaders, (void) atlases;
+        const size_t buffer_cap = 4092;
+        size_t buffer_size = 0;
+        char *out_buffer = (char *)std::malloc(buffer_cap + 1);
+        out_buffer[buffer_size] = 0;
+        std::string indent1 = "  ";
 
-        std::fwrite(hash_keys.data(), sizeof(char), hash_offset, file);
-        std::fwrite(subtex_keys.data(), sizeof(char), subtex_offset, file);
+        std::FILE *file = std::fopen(path_json_out.c_str(), "wb");
+        auto writeout_raw = [&](const std::string &s)
+        {
+            if (buffer_size + s.size() >= buffer_cap)
+            {
+                std::fwrite(out_buffer, 1, buffer_size, file);
+                buffer_size = 0;
+            }
+            std::memcpy(out_buffer + buffer_size, s.data(), s.size());
+            buffer_size += s.size();
+        };
 
+        auto writeout_str = [&](const std::string &s)
+        {
+            if (buffer_size + s.size() + 4 >= buffer_cap)
+            {
+                std::fwrite(out_buffer, 1, buffer_size, file);
+                buffer_size = 0;
+            }
+            out_buffer[buffer_size++] = '"';
+            std::memcpy(out_buffer + buffer_size, s.data(), s.size());
+            buffer_size += s.size();
+            out_buffer[buffer_size++] = '"';
+        };
+
+        writeout_raw("{\n  \"imgs\": [\n");
+        for (size_t i = 0; i < imgs.size(); i++)
+        {
+            writeout_raw("    ");
+            writeout_str(imgs[i].hash_key);
+            if (i < imgs.size() - 1) writeout_raw(",\n");
+            else writeout_raw("\n");
+        }
+
+        writeout_raw("  ],\n  \"atlases\": [\n");
+        for (size_t i = 0; i < atlases.size(); i++)
+        {
+            writeout_raw("    {\n      \"name\":\""+atlases[i].hash_key+"\",\n      \"sub_tex\": [\n");
+            auto &subtex = atlases[i].sprite_names;
+            for (size_t j = 0; j < atlases[i].sprite_names.size(); j++)
+            {
+                writeout_raw("        ");
+                writeout_str(subtex[j]);
+                if (j < subtex.size() - 1) writeout_raw(",\n");
+                else writeout_raw("\n");
+            }
+            writeout_raw("      ]\n    }");
+
+            if (i < atlases.size() - 1) writeout_raw(",\n");
+            else writeout_raw("\n");
+        }
+        writeout_raw("  ],\n  \"shaders\": [\n");
+        for (size_t i = 0; i < shaders.size(); i++)
+        {
+            writeout_raw("    ");
+            writeout_str(shaders[i].hash_key);
+            if (i < shaders.size() - 1) writeout_raw(",\n");
+            else writeout_raw("\n");
+        }
+        writeout_raw("  ]\n}\n");
+        std::fwrite(out_buffer, sizeof(char), buffer_size, file); // leftovers
         std::fclose(file);
     }
 }

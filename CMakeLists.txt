@@ -76,6 +76,13 @@ endif()
 # ===============================
 # Optional test executable
 # ===============================
+option(BINASSETS_WRITER_MAIN "Build a standalone test executable" ON)
+if (BINASSETS_WRITER_MAIN)
+    set_source_files_properties(
+        src/main.cpp
+        PROPERTIES COMPILE_DEFINITIONS "ASSET_CONVERT_MAIN"
+    )
+endif()
 option(BINASSETS_BUILD_EXE "Build a standalone test executable" OFF)
 if(BINASSETS_BUILD_EXE)
     add_executable(binassets_exe

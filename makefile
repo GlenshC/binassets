@@ -1,9 +1,15 @@
-.PHONY: release debug clean clang gcc msvc build config
+.PHONY: release debug clean clang gcc msvc build config writer reader
 
 debug:
 	cmake -G Ninja -B build -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_BUILD_TYPE=Debug -DBINASSETS_BUILD_EXE=ON
 	cmake --build build
 
+writer:
+	cmake -G Ninja -B build -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_BUILD_TYPE=Debug -DBINASSETS_BUILD_EXE=ON -DBINASSETS_WRITER_MAIN=ON
+	cmake --build build
+reader:
+	cmake -G Ninja -B build -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_BUILD_TYPE=Debug -DBINASSETS_BUILD_EXE=ON -DBINASSETS_WRITER_MAIN=OFF
+	cmake --build build
 
 config:
 	cmake -G "MinGW Makefiles" -Bbuild -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug -DBINASSETS_BUILD_EXE=ON

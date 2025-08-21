@@ -1,38 +1,19 @@
 #pragma once
 
-
 #include <string>
 #include <vector>
 
+#ifdef ADOBO_GAME_ENGINE
+// #include "types.h"
+#include "util/debug.h"
+#else
 #include "util_debug.h"
-
-namespace ggb
-{
-
-#ifndef BINASSET_COMMON_TYPES
-#define BINASSET_COMMON_TYPES
-    struct SubTextureDims
-    {
-        int x, y, width, height;
-    };
-
-    struct AssetCounts
-    {
-        int imgs;
-        int atlases;
-        int shaders;
-        int subtex;
-    };
-
-    struct AssetIMGInfo
-    {
-        int channels, x, y;
-    };
-    struct AssetAtlasInfo
-    {
-        int channels, x, y, sub_n;
-    };
 #endif
+
+#include "binassets/binasset_common.h"
+#include "binassets/binasset_write_decl.h"
+namespace binassets
+{
 
     struct AssetDataIMG
     {
@@ -45,16 +26,6 @@ namespace ggb
 
         AssetDataIMG(const std::string &file, const std::string &fhash_key);
         AssetDataIMG(unsigned char *fdata, const std::string &file, const std::string &fhash_key); 
-
-        // operator AssetIMG() const 
-        // {
-        //     return AssetIMG{
-        //         .data     = data,
-        //         .channels = channels,
-        //         .x        = x,
-        //         .y        = y,
-        //     };
-        // }
     };
     
     // TODO: rm ext member
@@ -110,3 +81,5 @@ namespace ggb
     /* WRITING */
     void assets_create_bin(const char *json_file, const char *bin_path_out);
 }
+
+namespace bsst = binassets;

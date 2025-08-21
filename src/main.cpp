@@ -1,7 +1,7 @@
-#define ASSET_CONVERT_MAIN
+// #define ASSET_CONVERT_MAIN
 
 #include "util_debug.h"
-
+#include "stb_image/stb_image.h"
 #ifdef ASSET_CONVERT_MAIN
     #include "binassets/binasset_write.h"
     int main(int argc, char *argv[])
@@ -12,7 +12,7 @@
             DEBUG_LOG("USAGE: %s [json_file_path] [out_glnsh_file].\n", argv[0]);
             return 1;
         }
-        ggb::assets_create_bin(argv[1], argv[2]);
+        binassets::assets_create_bin(argv[1], argv[2]);
 
         return 0;
     }
@@ -29,13 +29,13 @@
             return 1;
         }
         
-        ggb::AssetData data;
-        ggb::assets_load_bin(data, argv[1]);
+        binassets::assets_load_bin(argv[1]);
 
-        if (data)
-            DEBUG_LOG("shoot-duck_back.h: %d\n", data.atlases[ATLAS::shoot][shoot::DUCK_BACK_PNG].height);
+        if (bsst::g_assets)
+        {   
 
-        ggb::assets_data_free(data);
+        }
+
     }
 
 #endif

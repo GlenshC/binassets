@@ -1,0 +1,1 @@
+make reader && call app bin.glnsh

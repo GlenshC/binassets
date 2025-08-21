@@ -1,60 +1,85 @@
 #pragma once
 
+#ifdef ADOBO_GAME_ENGINE
+#include "util/debug.h"
+#include "renderer/texture.h"
+#include "renderer/shader.h"
+#else
 #include "util_debug.h"
-
-namespace ggb
-{
-#ifndef BINASSET_COMMON_TYPES
-#define BINASSET_COMMON_TYPES
-    struct SubTextureDims
-    {
-        int x, y, width, height;
-    };
-
-    struct AssetCounts
-    {
-        int imgs;
-        int atlases;
-        int shaders;
-        int subtex;
-    };
-
-    struct AssetIMGInfo
-    {
-        int channels, x, y;
-    };
-    struct AssetAtlasInfo
-    {
-        int channels, x, y, sub_n;
-    };
 #endif
 
+#include "binasset_common.h"
+#include "binasset_read_decl.h" // global externs and forward declares
+
+namespace binassets
+{
+    /* FUNCTIONS */
+    void assets_load_bin(const char *bin_path); // globals
+    void assets_load_bin_s(AssetData &data_out, const char *bin_path);
+    void assets_data_free(AssetData &data);
+    void assets_free_on_load(bool enabled);
+
+    #ifdef ADOBO_GAME_ENGINE
+    void assets_upload_atlases(AssetData &data);
+    #endif
+
+    
+    /* TYPE DEFS */
     struct AssetIMG
     {
-        unsigned char *data;
-        int channels;
-        int x;
-        int y;
+        unsigned char *data = nullptr;
+        int channels = 0;
+        int x = 0;
+        int y = 0;
+    #ifdef ADOBO_GAME_ENGINE
+        texture::Texture tex;
+        operator const texture::Texture&()
+        {
+            return tex;
+        }
+    #endif
     };
 
     struct AssetAtlas
     {
-        SubTextureDims *sprite_dims; // an arr
-        unsigned char  *data;
-        int channels;
-        int x;
-        int y;
+        SubTextureDims *dims = nullptr; // an arr
+        unsigned char  *data   = nullptr;
+        
+        int subtex_n = 0; 
+        int channels = 0;
+        int x = 0;
+        int y = 0;
 
-        SubTextureDims& operator[](size_t index)
+    #ifdef ADOBO_GAME_ENGINE
+        texture::Texture tex;
+        operator const texture::Texture&()
         {
-            return sprite_dims[index];
+            return tex;
         }
+        texture::TextureRef operator()()
+        {
+            return tex();
+        }
+        const adobo::vec4f& operator[](size_t index)
+        {
+            return tex[index];
+        }
+    #endif
+
     };
     
     struct AssetShader
     {
-        char *data;
-        int count;
+        char *data = nullptr;
+        int count  = 0;
+
+        #ifdef ADOBO_GAME_ENGINE
+        shader::Shader shader;
+        operator const shader::Shader &()
+        {
+            return shader;
+        }
+        #endif
     };
     
     struct AssetData
@@ -70,8 +95,6 @@ namespace ggb
             return atlases != nullptr;
         }
     };
-    
-    /* READING  */
-    void assets_load_bin(AssetData &data_out, const char *bin_path);
-    void assets_data_free(AssetData &data);
 }
+
+namespace bsst = binassets;

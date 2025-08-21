@@ -1,73 +1,286 @@
 #pragma once
 
-namespace IMG {
-enum {
-t_metrix,
-t_ball,
-};
-}
+namespace BSST_IMG {
+    enum {
+        DEBUG_T,
+    };
 
-namespace SHADER {
-enum {
-f_sprite,
-v_sprite,
-};
-}
+    char *NAMES[] = {
+        "DEBUG_T",
+    };
 
-namespace ATLAS {
-enum {
-shoot,
 };
-}
 
-namespace shoot {
-enum {
-DUCK_BACK_PNG,
-DUCK_BROWN_PNG,
-DUCK_OUTLINE_BACK_PNG,
-DUCK_OUTLINE_BROWN_PNG,
-DUCK_OUTLINE_TARGET_BROWN_PNG,
-DUCK_OUTLINE_TARGET_WHITE_PNG,
-DUCK_OUTLINE_TARGET_YELLOW_PNG,
-DUCK_OUTLINE_WHITE_PNG,
-DUCK_OUTLINE_YELLOW_PNG,
-DUCK_TARGET_BROWN_PNG,
-DUCK_TARGET_WHITE_PNG,
-DUCK_TARGET_YELLOW_PNG,
-DUCK_WHITE_PNG,
-DUCK_YELLOW_PNG,
-RIFLE_PNG,
-RIFLE_RED_PNG,
-SHOT_BLUE_LARGE_PNG,
-SHOT_BLUE_SMALL_PNG,
-SHOT_BROWN_LARGE_PNG,
-SHOT_BROWN_SMALL_PNG,
-SHOT_GREY_LARGE_PNG,
-SHOT_GREY_SMALL_PNG,
-SHOT_YELLOW_LARGE_PNG,
-SHOT_YELLOW_SMALL_PNG,
-STICK_METAL_PNG,
-STICK_METAL_BROKEN_PNG,
-STICK_METAL_OUTLINE_PNG,
-STICK_METAL_OUTLINE_BROKEN_PNG,
-STICK_WOOD_PNG,
-STICK_WOODFIXED_PNG,
-STICK_WOODFIXED_OUTLINE_PNG,
-STICK_WOOD_BROKEN_PNG,
-STICK_WOOD_OUTLINE_PNG,
-STICK_WOOD_OUTLINE_BROKEN_PNG,
-TARGET_BACK_PNG,
-TARGET_BACK_OUTLINE_PNG,
-TARGET_COLORED_PNG,
-TARGET_COLORED_OUTLINE_PNG,
-TARGET_RED1_PNG,
-TARGET_RED1_OUTLINE_PNG,
-TARGET_RED2_PNG,
-TARGET_RED2_OUTLINE_PNG,
-TARGET_RED3_PNG,
-TARGET_RED3_OUTLINE_PNG,
-TARGET_WHITE_PNG,
-TARGET_WHITE_OUTLINE_PNG,
+namespace BSST_SHADER {
+    enum {
+        SPRITE_F,
+    };
+
+    char *NAMES[] = {
+        "SPRITE_F",
+    };
+
 };
-}
+
+namespace BSST_ATLAS {
+    enum {
+        SHOOT,
+        SHOOT_HUD,
+        SHOOT_STALL,
+    };
+
+    char *NAMES[] = {
+        "SHOOT",
+        "SHOOT_HUD",
+        "SHOOT_STALL",
+    };
+
+};
+
+namespace BSST_SHOOT {
+    enum {
+        DUCK_BACK,
+        DUCK_BROWN,
+        DUCK_OUT_BACK,
+        DUCK_OUT_BROWN,
+        DUCK_OUT_TARGET_B,
+        DUCK_OUT_TARGET_W,
+        DUCK_OUT_TARGET_Y,
+        DUCK_OUT_W,
+        DUCK_OUT_Y,
+        DUCK_TARGET_B,
+        DUCK_TARGET_W,
+        DUCK_TARGET_Y,
+        DUCK_W,
+        DUCK_Y,
+        RIFLE,
+        RIFLE_RED,
+        SHOT_B_L,
+        SHOT_B_S,
+        SHOT_BR_L,
+        SHOT_BR_S,
+        SHOT_G_L,
+        SHOT_G_S,
+        SHOT_Y_L,
+        SHOT_Y_S,
+        STICK_METAL,
+        STICK_METAL_B,
+        STICK_METAL_OUT,
+        STICK_METAL_OUT_B,
+        STICK_WOOD,
+        STICK_WOOD_F,
+        STICK_WOOD_F_OUT,
+        STICK_WOOD_B,
+        STICK_WOOD_OUT,
+        STICK_WOOD_OUT_B,
+        TARGET_BACK,
+        TARGET_BACK_OUT,
+        TARGET_COLORED,
+        TARGET_COLORED_OUT,
+        TARGET_R1,
+        TARGET_R1_OUT,
+        TARGET_R2,
+        TARGET_R2_OUT,
+        TARGET_R3,
+        TARGET_R3_OUT,
+        TARGET_W,
+        TARGET_W_OUT,
+    };
+
+    char *NAMES[] = {
+        "DUCK_BACK",
+        "DUCK_BROWN",
+        "DUCK_OUT_BACK",
+        "DUCK_OUT_BROWN",
+        "DUCK_OUT_TARGET_B",
+        "DUCK_OUT_TARGET_W",
+        "DUCK_OUT_TARGET_Y",
+        "DUCK_OUT_W",
+        "DUCK_OUT_Y",
+        "DUCK_TARGET_B",
+        "DUCK_TARGET_W",
+        "DUCK_TARGET_Y",
+        "DUCK_W",
+        "DUCK_Y",
+        "RIFLE",
+        "RIFLE_RED",
+        "SHOT_B_L",
+        "SHOT_B_S",
+        "SHOT_BR_L",
+        "SHOT_BR_S",
+        "SHOT_G_L",
+        "SHOT_G_S",
+        "SHOT_Y_L",
+        "SHOT_Y_S",
+        "STICK_METAL",
+        "STICK_METAL_B",
+        "STICK_METAL_OUT",
+        "STICK_METAL_OUT_B",
+        "STICK_WOOD",
+        "STICK_WOOD_F",
+        "STICK_WOOD_F_OUT",
+        "STICK_WOOD_B",
+        "STICK_WOOD_OUT",
+        "STICK_WOOD_OUT_B",
+        "TARGET_BACK",
+        "TARGET_BACK_OUT",
+        "TARGET_COLORED",
+        "TARGET_COLORED_OUT",
+        "TARGET_R1",
+        "TARGET_R1_OUT",
+        "TARGET_R2",
+        "TARGET_R2_OUT",
+        "TARGET_R3",
+        "TARGET_R3_OUT",
+        "TARGET_W",
+        "TARGET_W_OUT",
+    };
+
+};
+
+namespace BSST_SHOOT_HUD {
+    enum {
+        CROSS_BLUE_L,
+        CROSS_BLUE_S,
+        CROSS_OUT_L,
+        CROSS_OUT_S,
+        CROSS_RED_L,
+        CROSS_RED_S,
+        CROSS_WHITE_L,
+        CROSS_WHITE_S,
+        BULLET_EMPTY_L,
+        BULLET_EMPTY_S,
+        BULLET_GOLD_L,
+        BULLET_GOLD_S,
+        BULLET_SILVER_L,
+        BULLET_SILVER_S,
+        ICON_DUCK,
+        ICON_TARGET,
+        NUM_0,
+        NUM_0_S,
+        NUM_1,
+        NUM_1_S,
+        NUM_2,
+        NUM_2_S,
+        NUM_3,
+        NUM_3_S,
+        NUM_4,
+        NUM_4_S,
+        NUM_5,
+        NUM_5_S,
+        NUM_6,
+        NUM_6_S,
+        NUM_7,
+        NUM_7_S,
+        NUM_8,
+        NUM_8_S,
+        NUM_9,
+        NUM_9_S,
+        CROSS,
+        CROSS_S,
+        DOTS,
+        DOTS_S,
+        TEXT_GAMEOVER,
+        TEXT_GO,
+        PLUS,
+        PLUS_S,
+        TEXT_READY,
+        TEXT_SCORE,
+        TEXT_SCORE_S,
+        TEXT_TIMEUP,
+    };
+
+    char *NAMES[] = {
+        "CROSS_BLUE_L",
+        "CROSS_BLUE_S",
+        "CROSS_OUT_L",
+        "CROSS_OUT_S",
+        "CROSS_RED_L",
+        "CROSS_RED_S",
+        "CROSS_WHITE_L",
+        "CROSS_WHITE_S",
+        "BULLET_EMPTY_L",
+        "BULLET_EMPTY_S",
+        "BULLET_GOLD_L",
+        "BULLET_GOLD_S",
+        "BULLET_SILVER_L",
+        "BULLET_SILVER_S",
+        "ICON_DUCK",
+        "ICON_TARGET",
+        "NUM_0",
+        "NUM_0_S",
+        "NUM_1",
+        "NUM_1_S",
+        "NUM_2",
+        "NUM_2_S",
+        "NUM_3",
+        "NUM_3_S",
+        "NUM_4",
+        "NUM_4_S",
+        "NUM_5",
+        "NUM_5_S",
+        "NUM_6",
+        "NUM_6_S",
+        "NUM_7",
+        "NUM_7_S",
+        "NUM_8",
+        "NUM_8_S",
+        "NUM_9",
+        "NUM_9_S",
+        "CROSS",
+        "CROSS_S",
+        "DOTS",
+        "DOTS_S",
+        "TEXT_GAMEOVER",
+        "TEXT_GO",
+        "PLUS",
+        "PLUS_S",
+        "TEXT_READY",
+        "TEXT_SCORE",
+        "TEXT_SCORE_S",
+        "TEXT_TIMEUP",
+    };
+
+};
+
+namespace BSST_SHOOT_STALL {
+    enum {
+        BG_B,
+        BG_G,
+        BG_R,
+        BG_WOOD,
+        CLOUD1,
+        CLOUD2,
+        CURTAIN,
+        CURTAIN_ROPE,
+        CURTAIN_STRAIGHT,
+        CURTAIN_TOP,
+        GRASS1,
+        GRASS2,
+        TREE_OAK,
+        TREE_PINE,
+        WATER1,
+        WATER2,
+    };
+
+    char *NAMES[] = {
+        "BG_B",
+        "BG_G",
+        "BG_R",
+        "BG_WOOD",
+        "CLOUD1",
+        "CLOUD2",
+        "CURTAIN",
+        "CURTAIN_ROPE",
+        "CURTAIN_STRAIGHT",
+        "CURTAIN_TOP",
+        "GRASS1",
+        "GRASS2",
+        "TREE_OAK",
+        "TREE_PINE",
+        "WATER1",
+        "WATER2",
+    };
+
+};
 

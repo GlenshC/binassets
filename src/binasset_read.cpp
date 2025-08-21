@@ -6,15 +6,29 @@
 #include <cstdlib>
 #include <cstring>
 
+
 #define GC_BINCEIL32(x) (--(x), (x) |= (x) >> 1, (x) |= (x) >> 2, (x) |= (x) >> 4, (x) |= (x) >> 8, (x) |= (x) >> 16, ++(x))
 
 
-namespace ggb
+namespace binassets
 {
+    AssetData g_assets;
+    AssetShader *&g_shaders  = g_assets.shaders; 
+    AssetIMG    *&g_imgs     = g_assets.imgs; 
+    AssetAtlas  *&g_atlases  = g_assets.atlases; 
+
     static void assets_read_bin(AssetData &data_out, const char *bin_path);
+    bool g_asset_free_on_load = true;
 
+    void assets_load_bin(const char *bin_path)
+    {        
+        if (!bin_path) return;
 
-    void assets_load_bin(AssetData &data_out, const char *bin_path)
+        DEBUG_LOG("Loading asset binaries...\n");
+        assets_read_bin(g_assets, bin_path);
+    }
+
+    void assets_load_bin_s(AssetData &data_out, const char *bin_path)
     {        
         if (!bin_path) return;
 
@@ -40,6 +54,17 @@ namespace ggb
         DEBUG_LOG("Binary Assets Freed.\n");
     }
 
+    #ifdef ADOBO_GAME_ENGINE
+    void assets_upload_atlases(AssetData &data)
+    {
+        const unsigned int RGBA = 0x1908;
+        for (size_t i =0; i  < data.atlases_size; i++)
+        {
+            texture::loadAtlas2D(data.atlases[i], RGBA);
+        }
+    }
+    #endif
+
     /* READING */
     static void assets_read_bin(AssetData &data_out, const char *bin_path)
     {
@@ -53,7 +78,7 @@ namespace ggb
             DEBUG_LOG("File not found %s\n", bin_path);
             return;
         }
-
+        
         // header
         std::fread(buffer, sizeof(char), 5, file);
         if (strcmp(buffer, header) != 0)
@@ -90,12 +115,15 @@ namespace ggb
         int total_info_count = dcounts.imgs * 3 + dcounts.atlases * 4 + dcounts.shaders;
         
         int                 *base_buffer  = (int *)malloc(sizeof(int) * (total_info_count));
-        ggb::AssetIMGInfo   *img_infos    = (ggb::AssetIMGInfo *)base_buffer;
-        ggb::AssetAtlasInfo *atlas_infos  = (ggb::AssetAtlasInfo *) img_infos + dcounts.imgs;
+        binassets::AssetIMGInfo   *img_infos    = (binassets::AssetIMGInfo *) base_buffer;
+        binassets::AssetAtlasInfo *atlas_infos  = (binassets::AssetAtlasInfo *) (img_infos + dcounts.imgs);
         int                 *shader_infos = (int *) (atlas_infos + dcounts.atlases);
 
         /* INFOS */
         std::fread(base_buffer, sizeof(int), total_info_count, file);
+        // debug_mem(base_buffer, total_info_count);
+        // debug_mem(base_buffer, (int *)atlas_infos - base_buffer);
+        // debug_mem((int *)atlas_infos, 4);
 
         /* SUBTEX */
         std::fread(subtex, sizeof(SubTextureDims), dcounts.subtex, file);
@@ -123,19 +151,27 @@ namespace ggb
             std::fread(data, sizeof(unsigned char), size, file);
 
             auto &atlas = atlases[i];
+            atlas.data = data;
             atlas.channels    = atlas_infos[i].channels;
             atlas.x           = atlas_infos[i].x;
             atlas.y           = atlas_infos[i].y;
-            atlas.sprite_dims = subtex;
+            atlas.subtex_n    = atlas_infos[i].sub_n;
+            atlas.dims = subtex;
 
             subtex += atlas_infos[i].sub_n;
         }
-        
+
+        // DEBUG_LOG("shader_n: %d\n", dcounts.shaders);
         for (int i = 0; i < dcounts.shaders; i++)
         {
             size_t size = shader_infos[i];
             
             char * data = (char *)std::malloc(size + 1);
+            if (data == nullptr)
+            {
+                DEBUG_ERR("MALLOC RETURNED A NULLPTR.\n");
+                return;
+            }
             std::fread(data, sizeof(char), size, file);
             data[size] = 0;
 
@@ -147,6 +183,11 @@ namespace ggb
         DEBUG_LOG("Successfully loaded binaries %s\n", bin_path);
         std::free(base_buffer);
 
+
         std::fclose(file);
+    }
+    void assets_free_on_load(bool enabled)
+    {
+        g_asset_free_on_load = enabled;
     }
 }

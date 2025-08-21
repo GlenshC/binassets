@@ -1,0 +1,1 @@
+make writer && call app assets.json bin
