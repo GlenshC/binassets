@@ -4,7 +4,7 @@
 #ifdef DEBUG_ASSET_BIN
     #include <cstdio>
     #define DEBUG_LOG(fstr, ...) std::printf(fstr, ##__VA_ARGS__);
-    #define DEBUG_ERR(fstr, ...) std::printf(fstr, ##__VA_ARGS__);
+    #define DEBUG_ERR(fstr, ...) std::fprintf(stderr, fstr, ##__VA_ARGS__);
 
     template <typename T>
     inline void debug_mem(T *arr, size_t offset_end)

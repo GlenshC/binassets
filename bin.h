@@ -5,7 +5,7 @@ namespace BSST_IMG {
         DEBUG_T,
     };
 
-    char *NAMES[] = {
+    const char *NAMES[] = {
         "DEBUG_T",
     };
 
@@ -16,7 +16,7 @@ namespace BSST_SHADER {
         SPRITE_F,
     };
 
-    char *NAMES[] = {
+    const char *NAMES[] = {
         "SPRITE_F",
     };
 
@@ -29,7 +29,7 @@ namespace BSST_ATLAS {
         SHOOT_STALL,
     };
 
-    char *NAMES[] = {
+    const char *NAMES[] = {
         "SHOOT",
         "SHOOT_HUD",
         "SHOOT_STALL",
@@ -87,7 +87,7 @@ namespace BSST_SHOOT {
         TARGET_W_OUT,
     };
 
-    char *NAMES[] = {
+    const char *NAMES[] = {
         "DUCK_BACK",
         "DUCK_BROWN",
         "DUCK_OUT_BACK",
@@ -190,7 +190,7 @@ namespace BSST_SHOOT_HUD {
         TEXT_TIMEUP,
     };
 
-    char *NAMES[] = {
+    const char *NAMES[] = {
         "CROSS_BLUE_L",
         "CROSS_BLUE_S",
         "CROSS_OUT_L",
@@ -263,7 +263,7 @@ namespace BSST_SHOOT_STALL {
         WATER2,
     };
 
-    char *NAMES[] = {
+    const char *NAMES[] = {
         "BG_B",
         "BG_G",
         "BG_R",

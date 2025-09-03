@@ -22,11 +22,14 @@ endif()
 # ===============================
 add_library(binasset_read STATIC
     src/binasset_read.cpp
+    src/binasset_json.cpp
 )
 target_include_directories(binasset_read
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/vendor
+        
 )
 
 # ===============================

@@ -1,1 +1,1 @@
-make reader && call app bin.glnsh
+make reader && call app bin.json

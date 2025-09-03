@@ -12,12 +12,12 @@
 
 namespace binassets
 {
-    AssetData g_assets;
-    AssetShader *&g_shaders  = g_assets.shaders; 
-    AssetIMG    *&g_imgs     = g_assets.imgs; 
-    AssetAtlas  *&g_atlases  = g_assets.atlases; 
+    AssetBinData    g_assets;
+    AssetShader *g_shaders= nullptr;
+    AssetIMG    *g_imgs   = nullptr; 
+    AssetAtlas  *g_atlases= nullptr; 
 
-    static void assets_read_bin(AssetData &data_out, const char *bin_path);
+    static void assets_read_bin(AssetBinData &data_out, const char *bin_path);
     bool g_asset_free_on_load = true;
 
     void assets_load_bin(const char *bin_path)
@@ -28,7 +28,7 @@ namespace binassets
         assets_read_bin(g_assets, bin_path);
     }
 
-    void assets_load_bin_s(AssetData &data_out, const char *bin_path)
+    void assets_load_bin_s(AssetBinData &data_out, const char *bin_path)
     {        
         if (!bin_path) return;
 
@@ -36,7 +36,7 @@ namespace binassets
         assets_read_bin(data_out, bin_path);
     }
 
-    void assets_data_free(AssetData &data)
+    void assets_free(AssetBinData &data)
     {
         if (data.atlases == nullptr)
         {
@@ -55,7 +55,16 @@ namespace binassets
     }
 
     #ifdef ADOBO_GAME_ENGINE
-    void assets_upload_atlases(AssetData &data)
+    void assets_upload_atlases()
+    {
+        const unsigned int RGBA = 0x1908;
+        for (size_t i =0; i  < g_assets.atlases_size; i++)
+        {
+            texture::loadAtlas2D(g_assets.atlases[i], RGBA);
+        }
+    }
+
+    void assets_upload_atlases(AssetBinData &data)
     {
         const unsigned int RGBA = 0x1908;
         for (size_t i =0; i  < data.atlases_size; i++)
@@ -66,7 +75,7 @@ namespace binassets
     #endif
 
     /* READING */
-    static void assets_read_bin(AssetData &data_out, const char *bin_path)
+    static void assets_read_bin(AssetBinData &data_out, const char *bin_path)
     {
         char buffer[6] = {};
         char header[] = "glnsh";
@@ -121,9 +130,6 @@ namespace binassets
 
         /* INFOS */
         std::fread(base_buffer, sizeof(int), total_info_count, file);
-        // debug_mem(base_buffer, total_info_count);
-        // debug_mem(base_buffer, (int *)atlas_infos - base_buffer);
-        // debug_mem((int *)atlas_infos, 4);
 
         /* SUBTEX */
         std::fread(subtex, sizeof(SubTextureDims), dcounts.subtex, file);
@@ -182,12 +188,12 @@ namespace binassets
 
         DEBUG_LOG("Successfully loaded binaries %s\n", bin_path);
         std::free(base_buffer);
-
-
         std::fclose(file);
     }
+    
     void assets_free_on_load(bool enabled)
     {
         g_asset_free_on_load = enabled;
     }
+
 }

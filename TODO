@@ -1,3 +1,15 @@
 ISSUE: write/read malloc runtime specified size is a super unsafe
 
 separate bin writer and bin reader for modularity
+
+read needs to expose json amd xml reader
+
+
+TODO REWRITE 
+    refactor the reading stuff in write to read, so write depends on read
+    bsst_writer must write the tex names // implement later
+
+TODO IMMD
+    runtime loader
+    write .adoboproj
+    FREE MEM

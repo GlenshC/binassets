@@ -3,195 +3,31 @@
 #endif
 
 #include <cstring>
-#include <fstream>
 #include <cstdio>
 #include <cstdlib>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image/stb_image.h"
-#include "nlohmann/json.hpp"
-#include "nlohmann/tinyxml2.h"
 #include "binassets/binasset_write.h"
-
-static char*        string_readf(const char* path, int &size);
-static std::string  get_dir_fpath(const std::string &filepath);
+#include "binassets/binasset_stl_read.h"
 
 /* STRUCT FUNCTIONS */
 namespace binassets
 {
     void assets_write_json(std::vector<AssetDataIMG> &imgs, std::vector<AssetDataShader> &shaders, std::vector<AssetDataAtlas> &atlases,std::string path_json_out);
-    static void assets_write_bin(std::vector<AssetDataIMG> &imgs,  std::vector<AssetDataShader> &shaders, std::vector<AssetDataAtlas> &atlases, const char *bin_path_out);
-    static void assets_load_json(std::vector<AssetDataIMG> &imgs, std::vector<AssetDataShader> &shaders, std::vector<AssetDataAtlas> &atlases, const char *json_file);
-    static void assets_load_xml(AssetDataAtlas &atlas, const char *xml_file);
 
 /******************************************************** 
  *                                                      *
- * STRUCT FUNCTIONS                                     *
+ * PUBLIC FUNCTIONS                                     *
  *                                                      *
  ********************************************************/
-    AssetDataIMG::AssetDataIMG(const std::string &fpath, const std::string &fhash_key)
-        : file(fpath), hash_key(fhash_key)
-    {
-        data = stbi_load((file).c_str(), &x, &y, &channels, 0);
-        if (data)
-        {
-            DEBUG_LOG("AssetDataIMG: read success %s.\n", file.c_str());
-            return;
-        }
-        DEBUG_LOG("AssetDataIMG: failed to initialize %s.\n", file.c_str());
-    }
-    AssetDataIMG::AssetDataIMG(unsigned char *fdata, const std::string &fpath, const std::string &fhash_key)
-        : file(fpath), hash_key(fhash_key), data(fdata)
-    {
-    }
-
-    AssetDataShader::AssetDataShader(const std::string &fpath, const std::string &fhash_key)
-        : file(fpath), hash_key(fhash_key)
-    {
-        data = string_readf((file).c_str(), count);
-        if (data)
-        {
-            DEBUG_LOG("AssetDataShader: read success %s.\n", file.c_str());
-            return;
-        }
-        DEBUG_LOG("AssetDataShader: failed to read %s.\n", file.c_str());
-    }
-
-    AssetDataShader::AssetDataShader(char *fdata, const std::string &fpath, const std::string &fhash_key)
-        : file(fpath), hash_key(fhash_key), data(fdata)
-    {
-    }
-
-    AssetDataAtlas::AssetDataAtlas(const std::string &fxml_path, const std::string &fhash_key)
-        : xml_path(fxml_path), hash_key(fhash_key)
-    {
-        dir = get_dir_fpath(xml_path);
-        assets_load_xml(*this, fxml_path.c_str());
-
-        data = stbi_load((dir + "/" + file).c_str(), &x, &y, &channels, 0);
-        if (data)
-        {
-            DEBUG_LOG("AssetDataAtlas: read success %s.\n", (dir + "/" + file).c_str());
-            return;
-        }
-        DEBUG_LOG("AssetDataAtlas: loaded xml");
-    }
-
-    AssetDataAtlas::AssetDataAtlas(unsigned char *fdata, const std::string &fpath, const std::string &fhash_key)
-        : file(fpath), hash_key(fhash_key), data(fdata)
-    {}
-    
-
-/******************************************************** 
- *                                                      *
- * HELPER FUNCTIONS                                     *
- *                                                      *
- ********************************************************/
-
-static void replace_char_and_upper(char *str, char find, char replace) {
-        for (char *p = str; *p != '\0'; p++) {
-            // Replace specific char
-            if (*p == find) {
-                *p = replace;
-            }
-            // Convert lowercase to uppercase
-            else if (islower((unsigned char)*p)) {
-                *p = toupper((unsigned char)*p);
-            }
-        }
-    }
-
-    /* PUBLIC FUNCTIONS */
-    static void assets_load_json(std::vector<AssetDataIMG> &imgs, std::vector<AssetDataShader> &shaders, std::vector<AssetDataAtlas> &atlases, const char *json_file)
-    {
-        DEBUG_LOG("Loading json file %s...\n", json_file);
-        std::ifstream file(json_file);
-        if (!file.is_open())
-        {
-            DEBUG_LOG("Failed to open %s", json_file);
-            return;
-        }
-
-        nlohmann::json j;
-        file >> j;
-
-        // image files
-        for (const auto &entry: j["imgs"])
-        {
-            std::string path = entry["path"].get<std::string>();
-            std::string key  = entry["key"].get<std::string>();
-            
-            imgs.emplace_back(path, key);
-        }
-
-        // vert/frag or any glsl
-        for (const auto &entry: j["shaders"])
-        {
-            std::string path = entry["path"].get<std::string>();
-            std::string key  = entry["key"].get<std::string>();
-            
-            shaders.emplace_back(path, key);
-        }
-        
-        // xml
-        for (const auto &entry: j["atlases"])
-        {
-            std::string path = entry["path"].get<std::string>();
-            std::string key  = entry["key"].get<std::string>();
-            
-            atlases.emplace_back(path, key);
-        }
-
-    }
-
-    static void assets_load_xml(AssetDataAtlas &atlas, const char *xml_file)
-    {
-        tinyxml2::XMLDocument doc;
-        if (doc.LoadFile(xml_file) != tinyxml2::XML_SUCCESS)
-        {
-            DEBUG_LOG("Failed to load XML\n");
-            return;
-        }
-
-        auto root = doc.FirstChildElement("TextureAtlas");
-        if (!root)
-        {
-            DEBUG_LOG("No <TextureAtlas> element found\n");
-            return;
-        }
-        auto &sprite_names = atlas.sprite_names;
-        auto &sprite_dims = atlas.sprite_dims;
-
-        atlas.file = (root->Attribute("imagePath"));
-        
-        for (auto elem = root->FirstChildElement("SubTexture"); elem; elem = elem->NextSiblingElement("SubTexture"))
-        {
-            float x, y, w, h;
-
-            std::string name = elem->Attribute("name");
-            replace_char_and_upper(name.data(), '.', '_');
-            sprite_names.push_back(name);
-            
-            elem->QueryAttribute("x", &x);
-            elem->QueryAttribute("y", &y);
-            elem->QueryAttribute("width", &w);
-            elem->QueryAttribute("height", &h);
-
-            sprite_dims.push_back({x, y, w, h});
-        }
-    }
-
     
     void assets_create_bin(const char *json_file, const char *bin_path_out)
     {
         if (!json_file || !bin_path_out) return;
-        std::vector<binassets::AssetDataIMG>    imgs;
-        std::vector<binassets::AssetDataShader> shaders;
-        std::vector<binassets::AssetDataAtlas>  atlases;
+        AssetData data;
         
         DEBUG_LOG("Creating asset binaries...\n");
-        assets_load_json(imgs, shaders, atlases, json_file);
-        assets_write_bin(imgs, shaders, atlases, bin_path_out);
+        assets_load_assetlist_json(data, json_file);
+        assets_write_bin(data.imgs, data.shaders, data.atlases, bin_path_out);
     }
 
     
@@ -203,6 +39,16 @@ static void replace_char_and_upper(char *str, char find, char replace) {
  ********************************************************/
 
     /* WRITING */
+    void assets_write_adoboproj(const char *name)
+    {
+        char header[] = "adoboproj";
+        std::FILE *file = std::fopen(name, "wb");
+
+        
+        
+    }
+
+
     void assets_write_bin(std::vector<AssetDataIMG> &imgs,  std::vector<AssetDataShader> &shaders, std::vector<AssetDataAtlas> &atlases, const char *bin_path_out)
     {
         char header[] = "glnsh";
@@ -244,7 +90,7 @@ static void replace_char_and_upper(char *str, char find, char replace) {
 
             for (auto &atlas : atlases)
             {
-                int sub_n = (int)atlas.sprite_names.size();
+                int sub_n = (int)atlas.subtex.size();
                 dcounts.subtex += sub_n;
 
                 buffer.push_back(atlas.channels);
@@ -253,13 +99,13 @@ static void replace_char_and_upper(char *str, char find, char replace) {
                 buffer.push_back(sub_n);
                 DEBUG_LOG("Atlas: %d %d %d %d\n", atlas.channels, atlas.x, atlas.y, sub_n);
 
-                for (int i = 0; i < (int)atlas.sprite_dims.size(); i++)
+                for (size_t i = 0; i < atlas.subtex.size(); i++)
                 {
-                    auto &sprite_dim = atlas.sprite_dims[i];
-                    sub_tex.push_back({sprite_dim.x,
-                                       sprite_dim.y,
-                                       sprite_dim.width,
-                                       sprite_dim.height});
+                    auto &subtex = atlas.subtex[i];
+                    sub_tex.push_back({subtex.x,
+                                       subtex.y,
+                                       subtex.width,
+                                       subtex.height});
                 }
             }
 
@@ -322,7 +168,7 @@ static void replace_char_and_upper(char *str, char find, char replace) {
             std::string atlas_header = "namespace BSST_ATLAS {\n    enum {";
             std::string shader_header = "namespace BSST_SHADER {\n    enum {";
             std::string bracket = "};\n";
-            std::string names_var = "char *NAMES[] = {";
+            std::string names_var = "const char *NAMES[] = {";
 
             const size_t buffer_cap = 4092;
             size_t buffer_size = 0;
@@ -460,19 +306,19 @@ static void replace_char_and_upper(char *str, char find, char replace) {
                     /* SUBTEX ENUM CLASS */
                     std::string subtex_header = "namespace BSST_" + atlas.hash_key + " {\n    enum {";
                     writeout(subtex_header); // header
-                    for (auto &s : atlas.sprite_names)
+                    for (auto &s : atlas.subtex)
                     {
                         writeout_raw(indent2);
-                        writeoutln(s);
+                        writeoutln(s.name);
                     }
                     writeout_raw(indent1);
                     writeout(bracket);
                     writeout_raw(indent1);
                     writeout(names_var);
-                    for (auto &s : atlas.sprite_names)
+                    for (auto &s : atlas.subtex)
                     {
                         writeout_raw(indent2);
-                        writeout_str(s);
+                        writeout_str(s.name);
                     }
 
                     writeout_raw(indent1);
@@ -535,11 +381,11 @@ static void replace_char_and_upper(char *str, char find, char replace) {
         for (size_t i = 0; i < atlases.size(); i++)
         {
             writeout_raw("    {\n      \"name\":\""+atlases[i].hash_key+"\",\n      \"sub_tex\": [\n");
-            auto &subtex = atlases[i].sprite_names;
-            for (size_t j = 0; j < atlases[i].sprite_names.size(); j++)
+            auto &subtex = atlases[i].subtex;
+            for (size_t j = 0; j < atlases[i].subtex.size(); j++)
             {
                 writeout_raw("        ");
-                writeout_str(subtex[j]);
+                writeout_str(subtex[j].name);
                 if (j < subtex.size() - 1) writeout_raw(",\n");
                 else writeout_raw("\n");
             }
@@ -573,29 +419,4 @@ static void replace_char_and_upper(char *str, char find, char replace) {
  * HELPER STATIC FUNCTIONS                              *
  *                                                      *
  ********************************************************/
-static char* string_readf(const char* path, int &size)
-{
-    std::FILE *file = std::fopen(path, "r");
-    if (!file)
-    {
-        return NULL;
-    }
-
-    std::fseek(file, 0, SEEK_END);
-    size = std::ftell(file);
-    std::fseek(file, 0, SEEK_SET);
-    
-    char *str = (char *)std::malloc(size + 1);
-    str[std::fread(str, sizeof(char), size, file)] = '\0';
-
-    return str;
-}
-
-static std::string get_dir_fpath(const std::string &filepath)
-{
-    size_t pos = filepath.find_last_of("/\\");
-    if (pos == std::string::npos)
-        return ""; // no directory part
-    return filepath.substr(0, pos);
-}
 

@@ -15,12 +15,13 @@ namespace binassets
 {
     /* FUNCTIONS */
     void assets_load_bin(const char *bin_path); // globals
-    void assets_load_bin_s(AssetData &data_out, const char *bin_path);
-    void assets_data_free(AssetData &data);
+    void assets_load_bin_s(AssetBinData &data_out, const char *bin_path);
+    void assets_free(AssetBinData &data);
     void assets_free_on_load(bool enabled);
 
     #ifdef ADOBO_GAME_ENGINE
-    void assets_upload_atlases(AssetData &data);
+    void assets_upload_atlases();
+    void assets_upload_atlases(AssetBinData &data);
     #endif
 
     
@@ -60,7 +61,7 @@ namespace binassets
         {
             return tex();
         }
-        const adobo::vec4f& operator[](size_t index)
+        const adobo::vec4f& operator[](i32 index)
         {
             return tex[index];
         }
@@ -82,14 +83,14 @@ namespace binassets
         #endif
     };
     
-    struct AssetData
+    struct AssetBinData
     {
-        AssetAtlas  *atlases = nullptr;
-        AssetIMG    *imgs    = nullptr;
-        AssetShader *shaders = nullptr;
-        size_t atlases_size  = 0;
-        size_t imgs_size     = 0;
-        size_t shaders_size  = 0;
+        AssetAtlas  *atlases;
+        AssetIMG    *imgs;
+        AssetShader *shaders;
+        size_t atlases_size;
+        size_t imgs_size;
+        size_t shaders_size;
         
         explicit operator bool() const {
             return atlases != nullptr;

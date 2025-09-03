@@ -19,6 +19,7 @@
 
 #else
     #include "binassets/binasset_read.h"
+    #include "binassets/binasset_json.h"
     #include "../bin.h"
     int main(int argc, char *argv[])
     {
@@ -29,12 +30,11 @@
             return 1;
         }
         
-        binassets::assets_load_bin(argv[1]);
-
-        if (bsst::g_assets)
-        {   
-
-        }
+        // binassets::assets_load_bin(argv[1]);
+        bsst::AssetNames names;
+        binassets::assets_load_json(names, argv[1]);
+        binassets::assets_test(names);
+        bsst::assets_free(names);
 
     }
 
